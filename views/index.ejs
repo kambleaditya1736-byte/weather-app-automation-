@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="hero">
+        <div>
+          <span class="tagline">Worldwide Weather</span>
+          <h1>Real-time Weather Dashboard</h1>
+          <p class="subtitle">
+            Search any city or use coordinates in the format <strong>lat,lon</strong> for instant results.
+          </p>
+        </div>
+        <div class="clock-card">
+          <span>Local time</span>
+          <strong id="local-time">--:--:--</strong>
+        </div>
+      </section>
+
+      <form id="weather-form" action="/" method="get" class="search-card">
+        <label for="city">City name or coordinates</label>
+        <div class="input-group">
+          <input
+            id="city"
+            name="city"
+            type="text"
+            placeholder="e.g. Paris or 48.8566,2.3522"
+            value="<%= weather ? weather.city : '' %>"
+            required
+          />
+          <button id="search-button" type="submit">Search</button>
+        </div>
+        <p class="hint">Try cities worldwide or exact coordinates for live location weather.</p>
+      </form>
+
+      <p id="error-message" class="error <%= error ? 'visible' : '' %>"><%= error || '' %></p>
+
+      <section id="weather-card" class="weather-card <%= weather ? '' : 'hidden' %>">
+        <div class="weather-header">
+          <div>
+            <h2 id="weather-city"><%= weather ? weather.city : '' %></h2>
+            <p class="description" id="weather-description"><%= weather ? weather.description : '' %></p>
+          </div>
+          <div class="weather-icon" id="weather-icon"><%= weather ? weather.icon : '🌦️' %></div>
+        </div>
+
+        <div class="temperature-row">
+          <p class="temperature" id="weather-temperature"><%= weather ? weather.temperature : '' %></p>
+          <span class="temperature-unit">°C</span>
+        </div>
+
+        <div class="weather-details">
+          <span id="weather-wind">Wind: <%= weather ? weather.windSpeed : '' %> m/s</span>
+          <% if (weather && weather.humidity != null) { %>
+          <span id="weather-humidity">Humidity: <%= weather.humidity %>%</span>
+          <% } else { %>
+          <span id="weather-humidity" class="hidden"></span>
+          <% } %>
+        </div>
+
+        <div class="card-footer">
+          <p class="updated" id="updated-at"><%= weather ? `Updated: ${new Date(weather.lastUpdated).toLocaleString()}` : '' %></p>
+          <button id="refresh-button" type="button" class="refresh-button">Refresh</button>
+        </div>
+      </section>
+
+      <section id="map-container" class="map-container <%= weather ? '' : 'hidden' %>">
+        <h3>Location Map</h3>
+        <div id="map" class="map-box"></div>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="/js/script.js"></script>
+  </body>
+</html>
