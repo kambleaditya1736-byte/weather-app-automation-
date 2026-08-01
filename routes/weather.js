@@ -16,45 +16,46 @@ router.get("/", (req, res) => {
 
 
 // Search Weather
-router.post("/weather", async (req, res) => {
-
-    const city = req.body.city;
+router.get("/api/weather", async (req, res) => {
+    const city = req.query.city;
 
     if (!city) {
-        return res.render("index", {
-            weather: null,
-            error: "Please enter city name"
+        return res.status(400).json({
+            error: "City is required"
         });
     }
 
     try {
 
-        const apiURL = 
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
-
+        const apiURL =
+            `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
 
         const response = await axios.get(apiURL);
 
-        const weatherData = response.data;
+        const data = response.data;
 
-
-        res.render("index", {
-            weather: weatherData,
-            error: null
+        res.json({
+            weather: {
+                city: data.name,
+                description: data.weather[0].description,
+                temperature: data.main.temp,
+                humidity: data.main.humidity,
+                windSpeed: data.wind.speed,
+                lat: data.coord.lat,
+                lon: data.coord.lon,
+                icon: "🌤️",
+                lastUpdated: new Date()
+            }
         });
 
+    } catch (err) {
 
-    } catch (error) {
-
-        console.log("Weather API Error:", error.message);
-
-        res.render("index", {
-            weather: null,
-            error: "Unable to fetch weather. Check city name or API key."
+        res.status(500).json({
+            error: "Unable to fetch weather",
+            errorDetails: err.message
         });
 
     }
-
 });
 
 
