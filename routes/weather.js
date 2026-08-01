@@ -52,7 +52,8 @@ router.get("/api/weather", async (req, res) => {
 
         res.status(500).json({
             error: "Unable to fetch weather",
-            errorDetails: err.message
+            errorDetails: err.message,
+            apiURL: `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
         });
 
     }
