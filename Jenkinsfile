@@ -1,12 +1,9 @@
 pipeline {
+
     agent any
 
-    environment {
-        PORT = "3000"
-        NODE_ENV = "production"
-    }
-
     stages {
+
         stage('Checkout') {
             steps {
                 echo "========== Checking out code =========="
@@ -14,61 +11,92 @@ pipeline {
             }
         }
 
+
         stage('Install Dependencies') {
             steps {
                 echo "========== Installing Node dependencies =========="
-                sh 'npm install'
-            }
-        }
-
-        stage('Run Checks') {
-            steps {
-                echo "========== Running basic checks =========="
                 sh '''
-                    node --version
-                    npm --version
-                    npm test
+                npm install
                 '''
             }
         }
 
-        stage('Start App Smoke Test') {
+
+        stage('Test') {
             steps {
-                echo "========== Starting app smoke test =========="
+                echo "========== Running Tests =========="
                 sh '''
-                    (node app.js > app.log 2>&1 &)
-                    for i in $(seq 1 20); do
-                        if curl -sf http://127.0.0.1:${PORT}/ >/dev/null 2>&1; then
-                            echo "App started successfully"
-                            exit 0
-                        fi
-                        sleep 2
-                    done
-                    echo "App failed to start"
-                    cat app.log
-                    exit 1
+                node --version
+                npm --version
+                npm test
                 '''
             }
         }
+
+
+        stage('Docker Build') {
+            steps {
+                echo "========== Building Docker Image =========="
+
+                sh '''
+                docker build -t weather-app .
+                '''
+            }
+        }
+
+
+        stage('Deploy Container') {
+            steps {
+                echo "========== Deploying Container =========="
+
+                sh '''
+
+                docker stop weather-app || true
+
+                docker rm weather-app || true
+
+
+                docker run -d \
+                --name weather-app \
+                -p 3000:3000 \
+                weather-app
+
+
+                '''
+            }
+        }
+
+
+        stage('Check Deployment') {
+
+            steps {
+
+                echo "========== Checking Application =========="
+
+                sh '''
+
+                sleep 5
+
+                curl -f http://127.0.0.1:3000/
+
+                '''
+
+            }
+        }
+
     }
 
+
     post {
-        always {
-            echo "========== Pipeline execution completed =========="
-        }
 
         success {
-            echo "✓ Pipeline completed successfully"
+            echo "🚀 CD Deployment Successful"
         }
 
         failure {
-            echo "✗ Pipeline failed"
-            sh '''
-                if [ -f app.log ]; then
-                    echo "---- app log ----"
-                    tail -n 20 app.log || true
-                fi
-            '''
+            echo "❌ Deployment Failed"
         }
+
     }
+
 }
